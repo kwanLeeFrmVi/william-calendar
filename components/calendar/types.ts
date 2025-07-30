@@ -62,6 +62,10 @@ export interface CalendarContainerProps {
    * A function that determines whether a given day should be displayed as disabled.
    */
   isDayDisabled?: (date: number) => boolean;
+  /**
+   * The type of separator to display.
+   */
+  separatorType?: 'week' | 'month' | 'year';
 }
 
 /**

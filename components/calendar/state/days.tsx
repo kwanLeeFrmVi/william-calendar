@@ -12,6 +12,18 @@ export interface IDayData {
    * Allows for other arbitrary data to be attached to a day.
    */
   [key: string]: any;
+  /**
+   * Indicates if the day is the start of a week.
+   */
+  isStartOfWeek?: boolean;
+  /**
+   * Indicates if the day is the start of a month.
+   */
+  isStartOfMonth?: boolean;
+  /**
+   * Indicates if the day is the start of a year.
+   */
+  isStartOfYear?: boolean;
 }
 
 /**

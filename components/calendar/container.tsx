@@ -1,6 +1,7 @@
 import React from "react";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarRow } from "./row";
+import { Separator } from "./Separator";
 import { dayStore, IDayData } from "./state/days";
 import { CalendarContainerProps, ItemRenderFn } from "./types";
 
@@ -21,6 +22,7 @@ function CalendarContainerFn({
   keyExtractor,
   style,
   isDayDisabled,
+  separatorType,
 }: CalendarContainerProps) {
   const { days: storeDays, scrollToTimestamp, fetchDaysData } = dayStore();
 
@@ -74,7 +76,13 @@ function CalendarContainerFn({
         const ts = startTs + i * DAY_SECONDS;
         let dayData = storeDays.get(ts);
         if (!dayData) {
-          dayData = { date: ts };
+          const dateObj = new Date(ts * 1000);
+          dayData = {
+            date: ts,
+            isStartOfWeek: dateObj.getDay() === startOfTheWeek,
+            isStartOfMonth: dateObj.getDate() === 1,
+            isStartOfYear: dateObj.getMonth() === 0 && dateObj.getDate() === 1,
+          };
           dayStore.getState().addDay(ts, dayData);
         }
         row.push(dayData);
@@ -117,12 +125,12 @@ function CalendarContainerFn({
   const renderRow = React.useCallback(
     ({ item }: { item: IDayData[] }) => (
       <CalendarRow
-        days={item.map(day => ({ ...day, isDisabled: isDayDisabled?.(day.date) }))}
-        itemRender={itemRender as ItemRenderFn}
+        days={item.map((day) => ({ ...day, isDisabled: isDayDisabled?.(day.date) }))}
+        itemRender={(day) => itemRender({ day, separatorType })}
         style={{ height: computedRowHeight }}
       />
     ),
-    [itemRender, computedRowHeight, isDayDisabled]
+    [itemRender, computedRowHeight, isDayDisabled, separatorType]
   );
 
   /**
