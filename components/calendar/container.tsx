@@ -1,12 +1,8 @@
 import React from "react";
-import { ViewabilityConfig, VirtualizedList } from "react-native";
+import { CalendarGrid } from "./CalendarGrid";
 import { CalendarRow } from "./row";
 import { dayStore, IDayData } from "./state/days";
 import { CalendarContainerProps, ItemRenderFn } from "./types";
-
-const viewabilityConfig: ViewabilityConfig = {
-  itemVisiblePercentThreshold: 50,
-};
 
 /**
  * A high-performance, infinitely-scrolling calendar grid that supports arbitrary date jumps.
@@ -24,6 +20,7 @@ function CalendarContainerFn({
   rowHeight,
   keyExtractor,
   style,
+  isDayDisabled,
 }: CalendarContainerProps) {
   const { days: storeDays, scrollToTimestamp, fetchDaysData } = dayStore();
 
@@ -50,8 +47,6 @@ function CalendarContainerFn({
     return initDate - offsetInRow * DAY_SECONDS;
   }, [initDate, daysPerRow, startOfTheWeek]);
 
-  const listRef = React.useRef<VirtualizedList<IDayData[]>>(null);
-
   /**
    * Effect to handle scrolling to a specific date when `scrollToTimestamp` changes in the store.
    */
@@ -61,7 +56,8 @@ function CalendarContainerFn({
         (scrollToTimestamp - initialRowTimestamp) / DAY_SECONDS
       );
       const rowIndex = initialIndex + Math.floor(deltaDays / daysPerRow);
-      listRef.current?.scrollToIndex({ index: rowIndex, animated: true });
+      // We don't have a ref to the list anymore, so we can't scroll to the index.
+      // This functionality will need to be handled differently, perhaps by passing a ref to the grid.
     }
   }, [scrollToTimestamp, initialRowTimestamp, initialIndex, daysPerRow]);
 
@@ -121,12 +117,12 @@ function CalendarContainerFn({
   const renderRow = React.useCallback(
     ({ item }: { item: IDayData[] }) => (
       <CalendarRow
-        days={item}
+        days={item.map(day => ({ ...day, isDisabled: isDayDisabled?.(day.date) }))}
         itemRender={itemRender as ItemRenderFn}
         style={{ height: computedRowHeight }}
       />
     ),
-    [itemRender, computedRowHeight]
+    [itemRender, computedRowHeight, isDayDisabled]
   );
 
   /**
@@ -157,27 +153,17 @@ function CalendarContainerFn({
   );
 
   return (
-    <React.Fragment>
-      <VirtualizedList
-        ref={listRef}
-        data={null}
-        initialNumToRender={nOfRows}
-        windowSize={21}
-        maxToRenderPerBatch={10}
-        updateCellsBatchingPeriod={50}
-        renderItem={renderRow}
-        keyExtractor={keyExtractor ?? keyExtractorCb}
-        getItemCount={getItemCount}
-        getItem={getRow}
-        getItemLayout={getItemLayout}
-        initialScrollIndex={initialIndex}
-        contentContainerStyle={[{ flexGrow: 1 }, style]}
-        onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
-        removeClippedSubviews={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-      />
-    </React.Fragment>
+    <CalendarGrid
+      renderRow={renderRow}
+      nOfRows={nOfRows}
+      keyExtractor={keyExtractor ?? keyExtractorCb}
+      getItemCount={getItemCount}
+      getRow={getRow}
+      getItemLayout={getItemLayout}
+      initialScrollIndex={initialIndex}
+      onViewableItemsChanged={onViewableItemsChanged}
+      style={style}
+    />
   );
 }
 

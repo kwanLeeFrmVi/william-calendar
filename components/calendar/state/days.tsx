@@ -9,10 +9,6 @@ export interface IDayData {
    */
   date: number;
   /**
-   * Optional income data for the day.
-   */
-  income?: number;
-  /**
    * Allows for other arbitrary data to be attached to a day.
    */
   [key: string]: any;
@@ -94,7 +90,8 @@ export const dayStore = create<IDaysStore>((set) => ({
     for (let ts = startTs; ts <= endTs; ts += 86400) {
       const dayData: IDayData = {
         date: ts,
-        income: Math.floor(Math.random() * 500), // Example extra data
+        income: Math.floor(Math.random() * 500),
+        expenses: Math.floor(Math.random() * 500), // Example extra data
       };
       fetchedDays.set(ts, dayData);
     }

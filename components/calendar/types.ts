@@ -58,4 +58,50 @@ export interface CalendarContainerProps {
    * Optional custom style for the container.
    */
   style?: StyleProp<ViewStyle>;
+  /**
+   * A function that determines whether a given day should be displayed as disabled.
+   */
+  isDayDisabled?: (date: number) => boolean;
+}
+
+/**
+ * Props for the `CalendarGrid` component.
+ */
+export interface CalendarGridProps {
+  /**
+   * A function that renders a single row of the calendar.
+   */
+  renderRow: ({ item }: { item: IDayData[] }) => React.ReactElement;
+  /**
+   * The number of rows to display in the visible portion of the calendar.
+   */
+  nOfRows: number;
+  /**
+   * An optional function to extract a unique key for each row.
+   */
+  keyExtractor: (item: IDayData[]) => string;
+  /**
+   * Returns the total number of rows in the list.
+   */
+  getItemCount: () => number;
+  /**
+   * Generates the data for a given row index.
+   */
+  getRow: (_: any, index: number) => IDayData[];
+  /**
+   * Provides the layout information for each item.
+   */
+  getItemLayout: (_: IDayData[][] | null, index: number) => { length: number; offset: number; index: number };
+  /**
+   * The initial index to scroll to.
+   */
+  initialScrollIndex: number;
+  /**
+   * Callback for when the viewable items change.
+   */
+  onViewableItemsChanged: ({ viewableItems }: { viewableItems: Array<any> }) => void;
+  /**
+   * Optional custom style for the container.
+   */
+  style?: StyleProp<ViewStyle>;
 }

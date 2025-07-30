@@ -3,12 +3,12 @@ import { CalendarItem } from "@/components/calendar/item";
 import { dayStore } from "@/components/calendar/state/days";
 import React, { useState } from "react";
 import {
-  StyleSheet,
-  View,
-  TextInput,
-  Button,
   Alert,
+  Button,
   Platform,
+  StyleSheet,
+  TextInput,
+  View,
 } from "react-native";
 
 /**
@@ -24,8 +24,18 @@ export default function CalendarScreen() {
       const timestamp = Math.floor(parsedDate.getTime() / 1000);
       setScrollToTimestamp(timestamp);
     } else {
-      Alert.alert("Invalid Date", "Please enter a valid date format (e.g., YYYY-MM-DD).");
+      Alert.alert(
+        "Invalid Date",
+        "Please enter a valid date format (e.g., YYYY-MM-DD)."
+      );
     }
+  };
+
+  const isDayDisabled = (date: number) => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const dayMonth = new Date(date * 1000).getMonth();
+    return currentMonth !== dayMonth;
   };
 
   return (
@@ -33,23 +43,24 @@ export default function CalendarScreen() {
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder="YYYY-MM-DD"
+          placeholder='YYYY-MM-DD'
           value={dateInput}
           onChangeText={setDateInput}
         />
-        <Button title="Jump to Date" onPress={handleJumpToDate} />
+        <Button title='Jump to Date' onPress={handleJumpToDate} />
       </View>
       <View style={styles.calendarWrapper}>
         <CalendarContainer
-          daysPerRow={7}
-          nOfRows={5}
-          rowHeight={60}
+          daysPerRow={3}
+          nOfRows={3}
+          rowHeight={80}
           startOfTheWeek={1}
           initialDate={Math.floor(Date.now() / 1000)}
           itemRender={(itemProps) => (
             <CalendarItem day={itemProps} style={styles.dayCell} />
           )}
           style={styles.calendarContainer}
+          isDayDisabled={isDayDisabled}
         />
       </View>
     </View>
