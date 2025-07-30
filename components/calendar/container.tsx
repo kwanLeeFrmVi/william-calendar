@@ -16,6 +16,7 @@ function CalendarContainerFn(
     startOfTheWeek = 0,
     initialDate,
     rowHeight,
+    keyExtractor,
   }: CalendarContainerProps,
   ref: React.ForwardedRef<CalendarContainerRef>
 ) {
@@ -28,12 +29,16 @@ function CalendarContainerFn(
   const totalRows = Math.ceil(totalDays / daysPerRow);
   const initialIndex = Math.floor(totalRows / 2);
 
-  const initDate = initialDate ?? Math.floor(Date.now() / 1000);
-  const offsetInRow =
-    daysPerRow === 7
-      ? ((new Date(initDate * 1000).getDay() - startOfTheWeek + 7) % 7)
-      : 0;
-  const initialRowTimestamp = initDate - offsetInRow * DAY_SECONDS;
+  const [initDate] = React.useState(
+    () => initialDate ?? Math.floor(Date.now() / 1000)
+  );
+  const initialRowTimestamp = React.useMemo(() => {
+    const offsetInRow =
+      daysPerRow === 7
+        ? (new Date(initDate * 1000).getDay() - startOfTheWeek + 7) % 7
+        : 0;
+    return initDate - offsetInRow * DAY_SECONDS;
+  }, [initDate, daysPerRow, startOfTheWeek]);
 
   const listRef = React.useRef<VirtualizedList<IDayData[]>>(null);
 
@@ -42,46 +47,85 @@ function CalendarContainerFn(
       const deltaDays = Math.ceil(
         (dateTimestamp - initialRowTimestamp) / DAY_SECONDS
       );
-      const rowIndex =
-        initialIndex + Math.floor(deltaDays / daysPerRow);
+      const rowIndex = initialIndex + Math.floor(deltaDays / daysPerRow);
       listRef.current?.scrollToIndex({ index: rowIndex, animated: true });
     },
   }));
 
-  const getRow = (_: any, index: number): IDayData[] => {
-    const startTs =
-      initialRowTimestamp + (index - initialIndex) * daysPerRow * DAY_SECONDS;
-    const row: IDayData[] = [];
-    for (let i = 0; i < daysPerRow; i++) {
-      const ts = startTs + i * DAY_SECONDS;
-      const dayData = storeDays.get(ts) || ({ date: ts } as IDayData);
-      row.push(dayData);
-    }
-    return row;
-  };
+  const getRow = React.useCallback(
+    (_: any, index: number): IDayData[] => {
+      const startTs =
+        initialRowTimestamp +
+        (index - initialIndex) * daysPerRow * DAY_SECONDS;
+      const row: IDayData[] = [];
+      for (let i = 0; i < daysPerRow; i++) {
+        const ts = startTs + i * DAY_SECONDS;
+        // Always create a stable object reference for each day
+        // This ensures the day data is consistent even if it's not in the store
+        const existingData = storeDays.get(ts);
+        const dayData = existingData ? { ...existingData } : { date: ts } as IDayData;
+        row.push(dayData);
+      }
+      return row;
+    },
+    [initialRowTimestamp, initialIndex, daysPerRow, storeDays]
+  );
 
-  const getItemCount = () => totalRows;
+  const getItemCount = React.useCallback(() => totalRows, [totalRows]);
 
-  const getItemLayout = (_: IDayData[][] | null, index: number) => ({
-    length: rowHeight,
-    offset: rowHeight * index,
-    index,
-  });
+  // Compute per-row height: either provided or divide container height by visible rows
+  const [containerHeight, setContainerHeight] = React.useState(0);
+  const computedRowHeight = React.useMemo(
+    () => (rowHeight ?? (containerHeight > 0 ? containerHeight / nOfRows : 0)),
+    [rowHeight, containerHeight, nOfRows]
+  );
+
+  const getItemLayout = React.useCallback(
+    (_: IDayData[][] | null, index: number) => ({
+      length: computedRowHeight,
+      offset: computedRowHeight * index,
+      index,
+    }),
+    [computedRowHeight]
+  );
+
+  const renderRow = React.useCallback(
+    ({ item }: { item: IDayData[] }) => (
+      <CalendarRow
+        days={item}
+        itemRender={itemRender}
+        style={{ height: computedRowHeight }}
+      />
+    ),
+    [itemRender, computedRowHeight]
+  );
+
+  const keyExtractorCb = React.useCallback(
+    (item: IDayData[]) => String(item[0]?.date),
+    []
+  );
 
   return (
-    <VirtualizedList
-      ref={listRef}
-      data={null}
-      initialNumToRender={nOfRows}
-      renderItem={({ item, index }) => (
-        <CalendarRow key={index} days={item} itemRender={itemRender} />
-      )}
-      keyExtractor={(_, index) => String(index)}
-      getItemCount={getItemCount}
-      getItem={getRow}
-      getItemLayout={getItemLayout}
-      initialScrollIndex={initialIndex}
-    />
+    <React.Fragment>
+      <VirtualizedList
+        ref={listRef}
+        data={null}
+        initialNumToRender={nOfRows}
+        windowSize={21} /* Increase window size to prevent recycling too aggressively */
+        maxToRenderPerBatch={10} /* Render more items per batch */
+        updateCellsBatchingPeriod={50} /* More frequent updates */
+        renderItem={renderRow}
+        keyExtractor={keyExtractor ?? keyExtractorCb}
+        getItemCount={getItemCount}
+        getItem={getRow}
+        getItemLayout={getItemLayout}
+        initialScrollIndex={initialIndex}
+        contentContainerStyle={{ flexGrow: 1 }}
+        onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
+        /* Ensure stable rendering */
+        removeClippedSubviews={false}
+      />
+    </React.Fragment>
   );
 }
 
@@ -99,8 +143,13 @@ interface CalendarContainerProps {
   startOfTheWeek?: number;
   /** initial date (timestamp seconds) to center on */
   initialDate?: number;
-  /** fixed height of each row in pixels */
-  rowHeight: number;
+  /** fixed height of each row in pixels; auto-calculated as containerHeight/nOfRows if omitted */
+  rowHeight?: number;
+  /**
+   * Optional custom key extractor for each row.
+   * Defaults to using the first day's timestamp.
+   */
+  keyExtractor?: (item: IDayData[]) => string;
 }
 
 /**

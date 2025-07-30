@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, ViewStyle } from "react-native";
 
 /**
  * Renders a row of day items.
@@ -6,9 +6,15 @@ import { View } from "react-native";
 export const CalendarRow = ({
   days,
   itemRender,
+  style,
 }: {
   days: any[];
   itemRender: (day: any) => React.ReactNode;
+  style?: ViewStyle;
 }) => {
-  return <View>{days.map((day) => itemRender(day))}</View>;
+  return (
+    <View style={[{ flexDirection: "row" }, style]}>
+      {days.map((day) => itemRender(day))}
+    </View>
+  );
 };

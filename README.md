@@ -95,10 +95,11 @@ const styles = StyleSheet.create({
 | -------------- | ---------------------------- | -------------- | ----------------------------------------------------------- |
 | daysPerRow     | number                       | `1`            | Number of days per row.                                     |
 | nOfRows        | number                       | `7`            | Number of rows to render initially.                         |
-| rowHeight      | number                       | —              | Pixel height of each row (required for virtualization).     |
+| rowHeight      | number                       | auto           | Pixel height of each row. If omitted, computed as containerHeight / nOfRows. |
 | startOfTheWeek | number                       | `0`            | First day of week for 7-day rows (0=Sunday).                |
 | initialDate    | number                       | now            | Center scroll position date (timestamp in seconds).         |
 | itemRender     | (day: IDayData) => ReactNode | `CalendarItem` | Custom renderer for each day cell.                          |
+| keyExtractor   | (item: IDayData[]) => string   | first date   | Custom key extractor for rows; defaults to using the first item's date timestamp.
 
 ### Imperative Methods
 
