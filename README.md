@@ -48,3 +48,62 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Calendar Container Component
+
+Add a performant, infinite-scrolling calendar grid to your app.
+
+### Usage
+
+```tsx
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { CalendarContainer, CalendarContainerRef } from './components/calendar/container';
+
+export default function CalendarScreen() {
+  const calendarRef = useRef<CalendarContainerRef>(null);
+
+  return (
+    <CalendarContainer
+      ref={calendarRef}
+      daysPerRow={7}
+      nOfRows={5}
+      rowHeight={60}
+      startOfTheWeek={1}
+      initialDate={Math.floor(Date.now() / 1000)}
+      itemRender={(day) => (
+        <View style={styles.dayCell}>
+          <Text>{new Date(day.date * 1000).toLocaleDateString()}</Text>
+        </View>
+      )}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  dayCell: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+```
+
+### Props
+
+| Prop           | Type                         | Default        | Description                                                 |
+| -------------- | ---------------------------- | -------------- | ----------------------------------------------------------- |
+| daysPerRow     | number                       | `1`            | Number of days per row.                                     |
+| nOfRows        | number                       | `7`            | Number of rows to render initially.                         |
+| rowHeight      | number                       | —              | Pixel height of each row (required for virtualization).     |
+| startOfTheWeek | number                       | `0`            | First day of week for 7-day rows (0=Sunday).                |
+| initialDate    | number                       | now            | Center scroll position date (timestamp in seconds).         |
+| itemRender     | (day: IDayData) => ReactNode | `CalendarItem` | Custom renderer for each day cell.                          |
+
+### Imperative Methods
+
+Access the following method via ref:
+
+```ts
+calendarRef.current?.scrollToDate(targetTimestampInSeconds);
+```
