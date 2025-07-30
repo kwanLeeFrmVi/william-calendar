@@ -1,9 +1,9 @@
 import React from "react";
+import { Text } from "react-native";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarRow } from "./row";
-import { Separator } from "./Separator";
 import { dayStore, IDayData } from "./state/days";
-import { CalendarContainerProps, ItemRenderFn } from "./types";
+import { CalendarContainerProps } from "./types";
 
 /**
  * A high-performance, infinitely-scrolling calendar grid that supports arbitrary date jumps.
@@ -15,7 +15,7 @@ import { CalendarContainerProps, ItemRenderFn } from "./types";
 function CalendarContainerFn({
   daysPerRow = 7,
   nOfRows = 5,
-  itemRender,
+  itemRender = (day: IDayData) => <Text>{day.date}</Text>,
   startOfTheWeek = 0,
   initialDate,
   rowHeight,
@@ -103,7 +103,12 @@ function CalendarContainerFn({
    * Calculates the height of each row, either from props or by dividing the container height.
    */
   const computedRowHeight = React.useMemo(
-    () => (rowHeight ? rowHeight : containerHeight > 0 ? containerHeight / nOfRows : 0),
+    () =>
+      rowHeight
+        ? rowHeight
+        : containerHeight > 0
+        ? containerHeight / nOfRows
+        : 0,
     [rowHeight, containerHeight, nOfRows]
   );
 
@@ -125,8 +130,11 @@ function CalendarContainerFn({
   const renderRow = React.useCallback(
     ({ item }: { item: IDayData[] }) => (
       <CalendarRow
-        days={item.map((day) => ({ ...day, isDisabled: isDayDisabled?.(day.date) }))}
-        itemRender={(day) => itemRender({ day, separatorType })}
+        days={item.map((day) => ({
+          ...day,
+          isDisabled: isDayDisabled?.(day.date),
+        }))}
+        itemRender={(day) => itemRender({ ...day, separatorType })}
         style={{ height: computedRowHeight }}
       />
     ),
@@ -145,7 +153,7 @@ function CalendarContainerFn({
    * Callback for when the viewable items change, used to fetch data for the visible date range.
    */
   const onViewableItemsChanged = React.useCallback(
-    ({ viewableItems }: { viewableItems: Array<any> }) => {
+    ({ viewableItems }: { viewableItems: any[] }) => {
       if (viewableItems.length > 0) {
         const firstVisible = viewableItems[0];
         const lastVisible = viewableItems[viewableItems.length - 1];

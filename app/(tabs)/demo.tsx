@@ -43,7 +43,7 @@ export default function DemoScreen() {
             <WilliamItem day={itemProps} style={styles.dayCell} />
           )}
           style={styles.calendarContainer}
-          // separatorType='month'
+          separatorType='month'
         />
       </View>
     </ScrollView>

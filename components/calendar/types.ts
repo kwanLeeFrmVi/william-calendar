@@ -65,7 +65,7 @@ export interface CalendarContainerProps {
   /**
    * The type of separator to display.
    */
-  separatorType?: 'week' | 'month' | 'year';
+  separatorType?: "week" | "month" | "year";
 }
 
 /**
@@ -95,7 +95,10 @@ export interface CalendarGridProps {
   /**
    * Provides the layout information for each item.
    */
-  getItemLayout: (_: IDayData[][] | null, index: number) => { length: number; offset: number; index: number };
+  getItemLayout: (
+    _: IDayData[][] | null,
+    index: number
+  ) => { length: number; offset: number; index: number };
   /**
    * The initial index to scroll to.
    */
@@ -103,7 +106,7 @@ export interface CalendarGridProps {
   /**
    * Callback for when the viewable items change.
    */
-  onViewableItemsChanged: ({ viewableItems }: { viewableItems: Array<any> }) => void;
+  onViewableItemsChanged: ({ viewableItems }: { viewableItems: any[] }) => void;
   /**
    * Optional custom style for the container.
    */
