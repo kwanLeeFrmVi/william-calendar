@@ -21,6 +21,10 @@ export interface IDaysStore {
   addDay: (dayTs: number, data?: IDayData) => void;
   /** remove a day's data */
   removeDay: (dayTs: number) => void;
+  /** timestamp to scroll to */
+  scrollToTimestamp?: number;
+  /** set the timestamp to scroll to */
+  setScrollToTimestamp: (timestamp: number) => void;
 }
 
 export const dayStore = create<IDaysStore>((set, get) => ({
@@ -35,4 +39,7 @@ export const dayStore = create<IDaysStore>((set, get) => ({
       state.days.delete(dayTs);
       return state;
     }),
+  scrollToTimestamp: undefined,
+  setScrollToTimestamp: (timestamp: number) =>
+    set({ scrollToTimestamp: timestamp }),
 }));

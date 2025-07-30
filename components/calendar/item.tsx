@@ -1,19 +1,31 @@
 import React from "react";
-import { Text, View } from "react-native";
-import { IDayData } from "./state/days";
+import { StyleSheet, Text, View } from "react-native";
+import { ItemProps } from "./types";
 
 /**
  * Default renderer for a single day cell.
  */
-export const CalendarItem = ({ date }: IDayData) => {
+export const CalendarItem = (props: ItemProps) => {
+  const { day, style } = props;
   // Format the date properly to ensure consistent display
   const formattedDate = React.useMemo(() => {
-    if (!date) return '';
-    return new Date(date * 1000).toLocaleDateString();
-  }, [date]);
-  
+    if (!day.date) return "";
+    return new Date(day.date * 1000).toLocaleDateString();
+  }, [day.date]);
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 5,
+      alignItems: "center",
+      justifyContent: "center",
+      borderColor: "#000000",
+      borderWidth: 1,
+    },
+  });
+
   return (
-    <View style={{ flex: 1, padding: 5, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={[styles.container, style]}>
       <Text>{formattedDate}</Text>
     </View>
   );
