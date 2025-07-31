@@ -111,4 +111,12 @@ export interface CalendarGridProps {
    * Optional custom style for the container.
    */
   style?: StyleProp<ViewStyle>;
+  /**
+   * Callback for when the layout changes.
+   */
+  onLayout?: (event: any) => void;
+  /**
+   * Ref for the VirtualizedList component.
+   */
+  ref?: React.Ref<any>;
 }

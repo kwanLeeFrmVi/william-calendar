@@ -52,14 +52,17 @@ function CalendarContainerFn({
   /**
    * Effect to handle scrolling to a specific date when `scrollToTimestamp` changes in the store.
    */
+  // Ref for imperative scrolling
+  const listRef = React.useRef<any>(null);
+
   React.useEffect(() => {
-    if (scrollToTimestamp) {
+    if (scrollToTimestamp && listRef.current) {
       const deltaDays = Math.ceil(
         (scrollToTimestamp - initialRowTimestamp) / DAY_SECONDS
       );
       const rowIndex = initialIndex + Math.floor(deltaDays / daysPerRow);
-      // We don't have a ref to the list anymore, so we can't scroll to the index.
-      // This functionality will need to be handled differently, perhaps by passing a ref to the grid.
+      // Imperatively scroll to the calculated row index
+      listRef.current.scrollToIndex?.({ index: rowIndex, animated: true });
     }
   }, [scrollToTimestamp, initialRowTimestamp, initialIndex, daysPerRow]);
 
@@ -170,6 +173,7 @@ function CalendarContainerFn({
 
   return (
     <CalendarGrid
+      ref={listRef}
       renderRow={renderRow}
       nOfRows={nOfRows}
       keyExtractor={keyExtractor ?? keyExtractorCb}

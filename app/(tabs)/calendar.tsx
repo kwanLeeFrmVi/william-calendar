@@ -14,6 +14,38 @@ import {
 /**
  * Calendar tab showing an infinite-scroll calendar grid.
  */
+function getLocaleDatePlaceholder() {
+  try {
+    const locale =
+      typeof navigator !== "undefined" && navigator.language
+        ? navigator.language
+        : undefined;
+    const formatter = new Intl.DateTimeFormat(locale, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    // Use a sample date to get the format string
+    const parts = formatter.formatToParts(new Date(2000, 0, 2));
+    return parts
+      .map((part) => {
+        switch (part.type) {
+          case "year":
+            return "YYYY";
+          case "month":
+            return "MM";
+          case "day":
+            return "DD";
+          default:
+            return part.value;
+        }
+      })
+      .join("");
+  } catch {
+    return "YYYY-MM-DD";
+  }
+}
+
 export default function CalendarScreen() {
   const [dateInput, setDateInput] = useState("");
   const { setScrollToTimestamp } = dayStore();
@@ -43,7 +75,7 @@ export default function CalendarScreen() {
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder='YYYY-MM-DD'
+          placeholder={getLocaleDatePlaceholder()}
           value={dateInput}
           onChangeText={setDateInput}
         />

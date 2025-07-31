@@ -1,7 +1,7 @@
-import React from 'react';
-import { VirtualizedList, ViewabilityConfig } from 'react-native';
-import { IDayData } from './state/days';
-import { CalendarGridProps } from './types';
+import React from "react";
+import { ViewabilityConfig, VirtualizedList } from "react-native";
+import { IDayData } from "./state/days";
+import { CalendarGridProps } from "./types";
 
 const viewabilityConfig: ViewabilityConfig = {
   itemVisiblePercentThreshold: 50,
@@ -24,12 +24,14 @@ export const CalendarGrid = ({
   initialScrollIndex,
   onViewableItemsChanged,
   style,
+  ref: forwardedRef,
 }: CalendarGridProps) => {
   const listRef = React.useRef<VirtualizedList<IDayData[]>>(null);
+  const ref = forwardedRef || listRef;
 
   return (
     <VirtualizedList
-      ref={listRef}
+      ref={ref}
       data={null}
       initialNumToRender={nOfRows}
       windowSize={21}

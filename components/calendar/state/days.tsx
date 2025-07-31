@@ -70,6 +70,7 @@ export interface IDaysStore {
 
 export const dayStore = create<IDaysStore>((set) => ({
   days: new Map(),
+  scrollToTimestamp: undefined,
   addDay: (dayTs: number, data?: Partial<IDayData>) =>
     set((state) => {
       const newDays = new Map(state.days);
@@ -83,7 +84,6 @@ export const dayStore = create<IDaysStore>((set) => ({
       newDays.delete(dayTs);
       return { days: newDays };
     }),
-  scrollToTimestamp: undefined,
   setScrollToTimestamp: (timestamp: number) =>
     set({ scrollToTimestamp: timestamp }),
 
