@@ -49,6 +49,13 @@ Join our community of developers creating universal apps.
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
 
+## Features
+
+- **Performant by Design:** The calendar is built for speed. It uses a `VirtualizedList` to render only the visible items, and a `Zustand` store to ensure that only the necessary components re-render when the selection changes.
+- **Infinite Scrolling:** The calendar supports infinite scrolling through a 100-year range, allowing users to navigate to any date with ease.
+- **Simple and Composable:** The calendar is built with a simple and composable architecture. The `CalendarContainer`, `CalendarRow`, and `CalendarItem` components are all pure, presentational components that can be easily styled and customized.
+- **State Management with Zustand:** The calendar uses a centralized `Zustand` store to manage the selection state. This makes the code more predictable, maintainable, and performant.
+
 ## Calendar Container Component
 
 Add a performant, infinite-scrolling calendar grid to your app.

@@ -27,6 +27,11 @@ This document records mistakes made during a failed attempt to refactor the cale
    - Did not clarify with the team which features were critical to preserve.
    - Did not document the original working behavior before starting.
 
+6. **Ignoring Project Constraints (Drag-to-Select)**
+   - Attempted to implement a feature (drag-to-select) that required ejecting from Expo Go.
+   - Failed to confirm early if such a change was acceptable within the project's constraints (e.g., staying within Expo Go).
+   - Led to wasted effort and a broken feature that had to be reverted.
+
 ## What To Do Instead
 
 - **If it works, don't fix it.**
@@ -40,3 +45,14 @@ This document records mistakes made during a failed attempt to refactor the cale
 ## Summary
 
 The best refactor is one that improves performance and maintainability **without breaking any existing features**. Always respect the working code, and make changes incrementally with constant testing.
+
+### Overall Lessons from this Interaction
+
+This entire interaction serves as a prime example of several critical lessons in software development and debugging:
+
+1.  **Validate Assumptions Early:** Before embarking on significant changes, especially those involving new libraries or architectural shifts, explicitly confirm compatibility and project constraints (e.g., "Are we allowed to eject from Expo Go?"). This prevents wasted effort.
+2.  **Incremental Debugging is Key:** When a feature isn't working, break down the problem into the smallest possible units. Instead of making multiple changes at once, isolate the problematic area and test changes one by one. This helps pinpoint the exact cause of the issue.
+3.  **Understand Library Nuances:** A superficial understanding of a library (like how Zustand selectors work to prevent re-renders) can lead to new, subtle bugs. Always delve deeper into the documentation and best practices for critical libraries.
+4.  **Revert and Re-evaluate:** When a series of changes leads to a broken state, don't be afraid to revert to a known working state and re-evaluate the approach. Continuing to build on a broken foundation only compounds the problems.
+5.  **Clear Communication is Paramount:** Misunderstandings about requirements (like the initial "slow" selection vs. the desire for multi-select) or constraints (Expo Go) can derail progress. Always ask clarifying questions and confirm understanding.
+6.  **Performance is a Journey, Not a Single Fix:** Optimizing performance often involves multiple, iterative steps, each addressing a specific bottleneck. It's rarely a one-shot solution.

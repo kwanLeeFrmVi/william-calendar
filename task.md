@@ -28,6 +28,14 @@ The following architectural changes were implemented:
 4.  **Modular Utility Functions:**
     - Date-related logic was extracted into utility functions (`getMonthDays`, `areDatesOnSameDay`) in `utils.ts` to keep component code clean and focused on rendering.
 
+## Development Log
+
+- **Initial Setup:** The project was initialized with a basic calendar component that had performance issues, particularly with selection.
+- **First Attempt: Lifting State:** The initial attempt to fix the performance issue involved lifting the selection state to the `CalendarScreen`. This was a step in the right direction, but it still caused the entire calendar to re-render on selection.
+- **Second Attempt: Zustand Store:** The next attempt involved using a `Zustand` store to manage the selection state. This was a significant improvement, but it was still not as performant as it could be because each `CalendarItem` was subscribed to the entire selection state.
+- **Third Attempt: Zustand Store with Selectors:** The final and successful attempt involved using a `Zustand` store with selectors. This ensures that each `CalendarItem` only subscribes to its own selection status, which means that only the selected and previously selected items re-render when the selection changes.
+- **Drag-to-Select (Abandoned):** An attempt was made to implement a drag-to-select feature using `PanResponder` and then `react-native-gesture-handler`. This was ultimately abandoned because it required ejecting from Expo Go, which was a project constraint.
+
 ## Outcome
 
 The calendar is now significantly more responsive. The new architecture ensures that user interactions, like selecting a date, trigger the minimum number of re-renders possible. The codebase is also more modular, maintainable, and scalable.

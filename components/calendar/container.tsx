@@ -8,19 +8,10 @@ import {
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CalendarRow } from "./row";
-import { CalendarContainerProps } from "./types";
-
-// Redefine IDayData here since we are removing the store import
-export interface IDayData {
-  date: number;
-  isStartOfWeek: boolean;
-  isStartOfMonth: boolean;
-  isStartOfYear: boolean;
-  isDisabled?: boolean;
-}
+import { CalendarContainerProps, IDayData } from "./types";
 
 // Constants
-const YEAR_RANGE = 100;
+const YEAR_RANGE = 10;
 const DAY_SECONDS = 86400;
 const DEFAULT_ITEM_RENDER = (day: IDayData) => <Text>{String(day.date)}</Text>;
 

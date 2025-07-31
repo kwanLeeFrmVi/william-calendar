@@ -45,24 +45,6 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name='demo'
-        options={{
-          title: "Demo",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name='star.fill' color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='demo2'
-        options={{
-          title: "Demo2",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name='star' color={color} />
-          ),
-        }}
-      />
     </Tabs>
   );
 }

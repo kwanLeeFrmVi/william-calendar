@@ -1,5 +1,32 @@
 import { StyleProp, ViewProps, ViewStyle } from "react-native";
-import { IDayData } from "./state/days";
+
+/**
+ * Represents the data for a single day cell in the calendar.
+ */
+export interface IDayData {
+  /**
+   * The date as a Unix timestamp (seconds since epoch).
+   */
+  date: number;
+  /**
+   * Allows for other arbitrary data to be attached to a day.
+   */
+  [key: string]: any;
+  /**
+   * Indicates if the day is the start of a week.
+   */
+  isStartOfWeek?: boolean;
+  /**
+   * Indicates if the day is the start of a month.
+   */
+  isStartOfMonth?: boolean;
+  /**
+   * Indicates if the day is the start of a year.
+   */
+  isStartOfYear?: boolean;
+
+  isDisabled?: boolean;
+}
 
 /**
  * Props for the `CalendarItem` component.
