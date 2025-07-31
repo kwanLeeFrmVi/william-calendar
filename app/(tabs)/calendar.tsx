@@ -1,6 +1,7 @@
-import { CalendarContainer } from "@/components/calendar/container";
+import CalendarContainer from "@/components/calendar/container";
 import { CalendarItem } from "@/components/calendar/item";
-import { dayStore } from "@/components/calendar/state/days";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import React, { useState } from "react";
 import {
   Alert,
@@ -11,6 +12,7 @@ import {
   View,
 } from "react-native";
 
+dayjs.extend(customParseFormat);
 /**
  * Calendar tab showing an infinite-scroll calendar grid.
  */
@@ -48,17 +50,18 @@ function getLocaleDatePlaceholder() {
 
 export default function CalendarScreen() {
   const [dateInput, setDateInput] = useState("");
-  const { setScrollToTimestamp } = dayStore();
+  const [scrollToTimestamp, setScrollToTimestamp] = useState<number>();
 
   const handleJumpToDate = () => {
-    const parsedDate = new Date(dateInput);
-    if (!isNaN(parsedDate.getTime())) {
-      const timestamp = Math.floor(parsedDate.getTime() / 1000);
+    const parsedDate = dayjs(dateInput, getLocaleDatePlaceholder());
+    console.log("🚀 ~ handleJumpToDate ~ parsedDate:", parsedDate, dateInput);
+    if (parsedDate.isValid()) {
+      const timestamp = Math.floor(parsedDate.valueOf() / 1000);
       setScrollToTimestamp(timestamp);
     } else {
       Alert.alert(
         "Invalid Date",
-        "Please enter a valid date format (e.g., YYYY-MM-DD)."
+        `Please enter a valid date format (e.g., ${getLocaleDatePlaceholder()}).`
       );
     }
   };
@@ -93,6 +96,7 @@ export default function CalendarScreen() {
           )}
           style={styles.calendarContainer}
           isDayDisabled={isDayDisabled}
+          scrollToTimestamp={scrollToTimestamp}
         />
       </View>
     </View>

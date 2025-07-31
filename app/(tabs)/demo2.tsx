@@ -1,4 +1,4 @@
-import { CalendarContainer } from "@/components/calendar/container";
+import CalendarContainer from "@/components/calendar/container";
 import { IDayData } from "@/components/calendar/state/days";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";

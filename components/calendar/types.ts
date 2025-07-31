@@ -72,6 +72,10 @@ export interface CalendarContainerProps {
    * @default 100
    */
   yearRange?: number;
+  /**
+   * An optional timestamp to scroll to.
+   */
+  scrollToTimestamp?: number;
 }
 
 /**
