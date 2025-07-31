@@ -66,6 +66,12 @@ export interface CalendarContainerProps {
    * The type of separator to display.
    */
   separatorType?: "week" | "month" | "year";
+
+  /**
+   * The range of years to display in the calendar.
+   * @default 100
+   */
+  yearRange?: number;
 }
 
 /**
@@ -75,7 +81,15 @@ export interface CalendarGridProps {
   /**
    * A function that renders a single row of the calendar.
    */
-  renderRow: ({ item }: { item: IDayData[] }) => React.ReactElement;
+  renderRow: ({
+    item,
+    index,
+    key,
+  }: {
+    item: IDayData[];
+    index: number;
+    key?: string;
+  }) => React.ReactElement;
   /**
    * The number of rows to display in the visible portion of the calendar.
    */

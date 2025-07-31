@@ -42,11 +42,19 @@ export const CalendarRow = React.memo(
 
     // Memoize the rendered day items to prevent unnecessary re-renders
     const renderedDays = React.useMemo(
-      () => days.map((day) => itemRender(day)),
+      () => days.map((day, index) => (
+        <React.Fragment key={day.date || index}>
+          {itemRender(day)}
+        </React.Fragment>
+      )),
       [days, itemRender]
     );
 
-    return <View style={rowStyle}>{renderedDays}</View>;
+    return (
+      <View style={rowStyle}>
+        {renderedDays}
+      </View>
+    );
   },
   (prevProps, nextProps) => {
     // Custom comparison function for React.memo

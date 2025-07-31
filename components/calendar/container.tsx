@@ -5,17 +5,19 @@ import { CalendarRow } from "./row";
 import { dayStore, IDayData } from "./state/days";
 import { CalendarContainerProps } from "./types";
 
+// Constants
+const YEAR_RANGE = 100;
+const DAY_SECONDS = 86400;
+const DEFAULT_ITEM_RENDER = (day: IDayData) => <Text>{day.date}</Text>;
+
 /**
  * A high-performance, infinitely-scrolling calendar grid that supports arbitrary date jumps.
  * This component is designed for efficiency by rendering only the visible items.
- *
- * @param {CalendarContainerProps} props - The component props.
- * @returns {React.ReactElement} The rendered calendar container.
  */
 function CalendarContainerFn({
   daysPerRow = 7,
   nOfRows = 5,
-  itemRender = (day: IDayData) => <Text>{day.date}</Text>,
+  itemRender = DEFAULT_ITEM_RENDER,
   startOfTheWeek = 0,
   initialDate,
   rowHeight,
@@ -23,23 +25,26 @@ function CalendarContainerFn({
   style,
   isDayDisabled,
   separatorType,
+  yearRange = YEAR_RANGE,
 }: CalendarContainerProps) {
+  // Store and refs
   const { days: storeDays, scrollToTimestamp, fetchDaysData } = dayStore();
+  const listRef = React.useRef<any>(null);
 
-  const YEAR_RANGE = 100;
-  const DAY_SECONDS = 86400;
-
-  const totalDays = YEAR_RANGE * 2 * 365;
+  // Computed values
+  const totalDays = yearRange * 2 * 365;
   const totalRows = Math.ceil(totalDays / daysPerRow);
   const initialIndex = Math.floor(totalRows / 2);
 
-  const [initDate] = React.useState(
-    () => initialDate ?? Math.floor(Date.now() / 1000)
+  // Initialize date - memoized to prevent unnecessary recalculations
+  const initDate = React.useMemo(
+    () => initialDate ?? Math.floor(Date.now() / 1000),
+    [initialDate]
   );
 
   /**
    * The timestamp of the very first day in the initial row.
-   * This is used as a stable anchor for all date calculations.
+   * This serves as a stable anchor for all date calculations.
    */
   const initialRowTimestamp = React.useMemo(() => {
     const offsetInRow =
@@ -49,74 +54,61 @@ function CalendarContainerFn({
     return initDate - offsetInRow * DAY_SECONDS;
   }, [initDate, daysPerRow, startOfTheWeek]);
 
-  /**
-   * Effect to handle scrolling to a specific date when `scrollToTimestamp` changes in the store.
-   */
-  // Ref for imperative scrolling
-  const listRef = React.useRef<any>(null);
-
+  // Handle scrolling to specific timestamp
   React.useEffect(() => {
     if (scrollToTimestamp && listRef.current) {
       const deltaDays = Math.ceil(
         (scrollToTimestamp - initialRowTimestamp) / DAY_SECONDS
       );
-      const rowIndex = initialIndex + Math.floor(deltaDays / daysPerRow);
-      // Imperatively scroll to the calculated row index
-      listRef.current.scrollToIndex?.({ index: rowIndex, animated: true });
+      const targetRowIndex = initialIndex + Math.floor(deltaDays / daysPerRow);
+      listRef.current.scrollToIndex?.({
+        index: targetRowIndex,
+        animated: true,
+      });
     }
   }, [scrollToTimestamp, initialRowTimestamp, initialIndex, daysPerRow]);
 
+  // Row height calculation
+  const computedRowHeight = React.useMemo(() => {
+    return rowHeight || 0; // Simplified - container height calculation removed as it's not used
+  }, [rowHeight]);
+
   /**
-   * Generates the data for a given row index.
-   * If a day's data is not in the store, it's created and added.
+   * Generates row data for a given index.
+   * Creates and caches day data if not already in store.
    */
   const getRow = React.useCallback(
     (_: any, index: number): IDayData[] => {
-      const startTs =
+      const rowStartTimestamp =
         initialRowTimestamp + (index - initialIndex) * daysPerRow * DAY_SECONDS;
       const row: IDayData[] = [];
-      for (let i = 0; i < daysPerRow; i++) {
-        const ts = startTs + i * DAY_SECONDS;
-        let dayData = storeDays.get(ts);
+
+      for (let dayIndex = 0; dayIndex < daysPerRow; dayIndex++) {
+        const dayTimestamp = rowStartTimestamp + dayIndex * DAY_SECONDS;
+        let dayData = storeDays.get(dayTimestamp);
+
         if (!dayData) {
-          const dateObj = new Date(ts * 1000);
+          const dateObj = new Date(dayTimestamp * 1000);
           dayData = {
-            date: ts,
+            date: dayTimestamp,
             isStartOfWeek: dateObj.getDay() === startOfTheWeek,
             isStartOfMonth: dateObj.getDate() === 1,
             isStartOfYear: dateObj.getMonth() === 0 && dateObj.getDate() === 1,
           };
-          dayStore.getState().addDay(ts, dayData);
+          dayStore.getState().addDay(dayTimestamp, dayData);
         }
         row.push(dayData);
       }
       return row;
     },
-    [initialRowTimestamp, initialIndex, daysPerRow, storeDays]
+    [initialRowTimestamp, initialIndex, daysPerRow, storeDays, startOfTheWeek]
   );
 
-  /**
-   * Returns the total number of rows in the list.
-   */
+  // Simple getter functions
   const getItemCount = React.useCallback(() => totalRows, [totalRows]);
 
-  const [containerHeight, setContainerHeight] = React.useState(0);
-
   /**
-   * Calculates the height of each row, either from props or by dividing the container height.
-   */
-  const computedRowHeight = React.useMemo(
-    () =>
-      rowHeight
-        ? rowHeight
-        : containerHeight > 0
-        ? containerHeight / nOfRows
-        : 0,
-    [rowHeight, containerHeight, nOfRows]
-  );
-
-  /**
-   * Provides the layout information for each item, which is essential for `VirtualizedList` performance.
+   * Provides layout information for virtualized list performance optimization.
    */
   const getItemLayout = React.useCallback(
     (_: IDayData[][] | null, index: number) => ({
@@ -128,43 +120,59 @@ function CalendarContainerFn({
   );
 
   /**
-   * Renders a single row of the calendar.
+   * Renders a calendar row with enhanced day data.
    */
   const renderRow = React.useCallback(
-    ({ item }: { item: IDayData[] }) => (
-      <CalendarRow
-        days={item.map((day) => ({
-          ...day,
-          isDisabled: isDayDisabled?.(day.date),
-        }))}
-        itemRender={(day) => itemRender({ ...day, separatorType })}
-        style={{ height: computedRowHeight }}
-      />
-    ),
+    ({
+      item,
+      index,
+      key,
+    }: {
+      item: IDayData[];
+      index: number;
+      key?: string;
+    }) => {
+      const enhancedDays = item.map((day) => ({
+        ...day,
+        isDisabled: isDayDisabled?.(day.date),
+      }));
+
+      return (
+        <CalendarRow
+          days={enhancedDays}
+          itemRender={(day) => itemRender({ ...day, separatorType })}
+          style={{ height: computedRowHeight }}
+        />
+      );
+    },
     [itemRender, computedRowHeight, isDayDisabled, separatorType]
   );
 
   /**
-   * Extracts a unique key for each row.
+   * Extracts unique key for each row based on first day's timestamp.
    */
   const keyExtractorCb = React.useCallback(
-    (item: IDayData[]) => String(item[0]?.date),
+    (item: IDayData[]) => String(item[0]?.date || 0),
     []
   );
 
   /**
-   * Callback for when the viewable items change, used to fetch data for the visible date range.
+   * Handles viewable items change to fetch data for visible date range.
    */
   const onViewableItemsChanged = React.useCallback(
     ({ viewableItems }: { viewableItems: any[] }) => {
-      if (viewableItems.length > 0) {
-        const firstVisible = viewableItems[0];
-        const lastVisible = viewableItems[viewableItems.length - 1];
+      if (viewableItems.length === 0) return;
 
-        if (firstVisible.item && lastVisible.item) {
-          const startTs = firstVisible.item[0].date;
-          const endTs = lastVisible.item[lastVisible.item.length - 1].date;
-          fetchDaysData(startTs, endTs);
+      const firstVisible = viewableItems[0];
+      const lastVisible = viewableItems[viewableItems.length - 1];
+
+      if (firstVisible?.item && lastVisible?.item) {
+        const startTimestamp = firstVisible.item[0]?.date;
+        const endTimestamp =
+          lastVisible.item[lastVisible.item.length - 1]?.date;
+
+        if (startTimestamp && endTimestamp) {
+          fetchDaysData(startTimestamp, endTimestamp);
         }
       }
     },
