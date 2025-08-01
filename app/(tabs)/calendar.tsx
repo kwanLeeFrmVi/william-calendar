@@ -2,7 +2,7 @@ import CalendarContainer from "@/components/calendar/container";
 import { CalendarItem } from "@/components/calendar/item";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -53,7 +53,10 @@ export default function CalendarScreen() {
   const [scrollToTimestamp, setScrollToTimestamp] = useState<number>();
 
   const handleJumpToDate = () => {
-    const parsedDate = dayjs(dateInput, getLocaleDatePlaceholder());
+    // start of the week
+    const parsedDate = dayjs(dateInput, getLocaleDatePlaceholder()).startOf(
+      "week"
+    );
     console.log("🚀 ~ handleJumpToDate ~ parsedDate:", parsedDate, dateInput);
     if (parsedDate.isValid()) {
       const timestamp = Math.floor(parsedDate.valueOf() / 1000);
@@ -73,6 +76,11 @@ export default function CalendarScreen() {
     return currentMonth !== dayMonth;
   };
 
+  // initDate is always monday
+  const initDate = useMemo(() => {
+    return dayjs().startOf("week").valueOf() / 1000;
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.inputContainer}>
@@ -90,7 +98,7 @@ export default function CalendarScreen() {
           nOfRows={3}
           rowHeight={80}
           startOfTheWeek={1}
-          initialDate={Math.floor(Date.now() / 1000)}
+          initialDate={initDate}
           itemRender={(itemProps) => (
             <CalendarItem day={itemProps} style={styles.dayCell} />
           )}

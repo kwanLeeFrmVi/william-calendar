@@ -1,5 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
+  ListRenderItemInfo,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -11,7 +18,7 @@ import { CalendarRow } from "./row";
 import { CalendarContainerProps, IDayData } from "./types";
 
 // Constants
-const YEAR_RANGE = 10;
+const YEAR_RANGE = 1;
 const DAY_SECONDS = 86400;
 const DEFAULT_ITEM_RENDER = (day: IDayData) => <Text>{String(day.date)}</Text>;
 
@@ -35,11 +42,22 @@ export default function CalendarContainer({
 }: CalendarContainerProps) {
   // Store and refs
   const listRef = useRef<VirtualizedList<any>>(null);
+  const [daysBefore, setDaysBefore] = useState(yearRange * 365);
+  const [daysAfter, setDaysAfter] = useState(yearRange * 365);
 
   // Computed values
-  const totalDays = yearRange * 2 * 365;
-  const totalRows = Math.ceil(totalDays / daysPerRow);
-  const initialIndex = Math.floor(totalRows / 2);
+  const totalDays = useMemo(
+    () => daysBefore + daysAfter,
+    [daysBefore, daysAfter]
+  );
+  const totalRows = useMemo(
+    () => Math.ceil(totalDays / daysPerRow),
+    [totalDays, daysPerRow]
+  );
+  const initialIndex = useMemo(
+    () => Math.ceil(daysBefore / daysPerRow),
+    [daysBefore, daysPerRow]
+  );
 
   // Initialize date - memoized to prevent unnecessary recalculations
   const initDate = useMemo(
@@ -123,7 +141,7 @@ export default function CalendarContainer({
    * Renders a calendar row with enhanced day data.
    */
   const renderItem = useCallback(
-    ({ item }: { item: IDayData[] }) => {
+    ({ item, index, separators }: ListRenderItemInfo<IDayData[]>) => {
       const enhancedDays = item.map((day) => ({
         ...day,
         isDisabled: isDayDisabled?.(day.date),
@@ -132,7 +150,7 @@ export default function CalendarContainer({
       return (
         <CalendarRow
           days={enhancedDays}
-          itemRender={(day) => itemRender({ ...day, separatorType })}
+          itemRender={(day) => itemRender({ ...day, separatorType, index })}
           style={{ height: computedRowHeight }}
         />
       );
@@ -160,6 +178,25 @@ export default function CalendarContainer({
           getItemLayout={getItemLayout}
           initialScrollIndex={initialIndex}
           initialNumToRender={nOfRows}
+          onEndReachedThreshold={0.2}
+          onEndReached={() => {
+            setDaysAfter(daysAfter + 90); // Add 3 months to the end
+          }}
+          onStartReached={() => {
+            const newDaysBefore = daysBefore + 90;
+            const newRowsPrepended =
+              Math.ceil(newDaysBefore / daysPerRow) -
+              Math.ceil(daysBefore / daysPerRow);
+            setDaysBefore(newDaysBefore); // Add 3 months to the beginning
+
+            // Adjust scroll position to keep view stable
+            if (listRef.current && newRowsPrepended > 0) {
+              listRef.current.scrollToOffset({
+                offset: newRowsPrepended * computedRowHeight,
+                animated: false, // No animation to make it seamless
+              });
+            }
+          }}
         />
       </SafeAreaView>
     </SafeAreaProvider>

@@ -35,8 +35,10 @@ const styles = StyleSheet.create({
  */
 export const CalendarItem = React.memo((props: ItemProps) => {
   const { day, style } = props;
-
-  const isSelected = useSelectionStore((state) => state.selectedDate === day.date);
+  const index = day.index;
+  const isSelected = useSelectionStore(
+    (state) => state.selectedDate === day.date
+  );
 
   // Convert timestamp to Date object
   const currentDate = React.useMemo(
@@ -49,7 +51,10 @@ export const CalendarItem = React.memo((props: ItemProps) => {
     () => currentDate.toLocaleDateString(),
     [currentDate]
   );
-
+  const dayOfWeek = React.useMemo(
+    () => currentDate.toLocaleDateString("en-US", { weekday: "short" }),
+    [currentDate]
+  );
   // Handle day selection
   const handlePress = React.useCallback(() => {
     if (day.isDisabled) return;
@@ -79,6 +84,8 @@ export const CalendarItem = React.memo((props: ItemProps) => {
       activeOpacity={0.7}
     >
       <Text style={textStyle}>{dayOfMonth}</Text>
+      <Text>{dayOfWeek}</Text>
+      <Text>index {index}</Text>
     </TouchableOpacity>
   );
 });
