@@ -18,7 +18,7 @@ import { CalendarRow } from "./row";
 import { CalendarContainerProps, IDayData } from "./types";
 
 // Constants
-const YEAR_RANGE = 1;
+const MONTH_RANGE = 2;
 const DAY_SECONDS = 86400;
 const DEFAULT_ITEM_RENDER = (day: IDayData) => <Text>{String(day.date)}</Text>;
 
@@ -37,13 +37,13 @@ export default function CalendarContainer({
   style,
   isDayDisabled,
   separatorType,
-  yearRange = YEAR_RANGE,
+  yearRange = MONTH_RANGE,
   scrollToTimestamp,
 }: CalendarContainerProps) {
   // Store and refs
   const listRef = useRef<VirtualizedList<any>>(null);
-  const [daysBefore, setDaysBefore] = useState(yearRange * 365);
-  const [daysAfter, setDaysAfter] = useState(yearRange * 365);
+  const [daysBefore, setDaysBefore] = useState(yearRange * 30);
+  const [daysAfter, setDaysAfter] = useState(yearRange * 30);
 
   // Computed values
   const totalDays = useMemo(
@@ -54,15 +54,14 @@ export default function CalendarContainer({
     () => Math.ceil(totalDays / daysPerRow),
     [totalDays, daysPerRow]
   );
+
   const initialIndex = useMemo(
     () => Math.ceil(daysBefore / daysPerRow),
     [daysBefore, daysPerRow]
   );
 
-  // Initialize date - memoized to prevent unnecessary recalculations
-  const initDate = useMemo(
-    () => initialDate ?? Math.floor(Date.now() / 1000),
-    [initialDate]
+  const [initDate, setInitDate] = useState(
+    initialDate ?? Math.floor(Date.now() / 1000)
   );
 
   /**
@@ -80,16 +79,13 @@ export default function CalendarContainer({
   // Handle scrolling to specific timestamp
   useEffect(() => {
     if (scrollToTimestamp && listRef.current) {
-      const deltaDays = Math.ceil(
-        (scrollToTimestamp - initialRowTimestamp) / DAY_SECONDS
-      );
-      const targetRowIndex = initialIndex + Math.floor(deltaDays / daysPerRow);
-      listRef.current.scrollToIndex?.({
-        index: targetRowIndex,
+      setInitDate(scrollToTimestamp);
+      listRef.current?.scrollToIndex?.({
+        index: initialIndex,
         animated: true,
       });
     }
-  }, [scrollToTimestamp, initialRowTimestamp, initialIndex, daysPerRow]);
+  }, [scrollToTimestamp, initialRowTimestamp, initialIndex]);
 
   // Row height calculation
   const computedRowHeight = useMemo(() => {
@@ -178,22 +174,23 @@ export default function CalendarContainer({
           getItemLayout={getItemLayout}
           initialScrollIndex={initialIndex}
           initialNumToRender={nOfRows}
-          onEndReachedThreshold={0.2}
+          onEndReachedThreshold={0.4}
           onEndReached={() => {
-            setDaysAfter(daysAfter + 90); // Add 3 months to the end
+            setDaysAfter(daysAfter + MONTH_RANGE * 30);
           }}
+          onStartReachedThreshold={0.0}
           onStartReached={() => {
-            const newDaysBefore = daysBefore + 90;
+            const newDaysBefore = daysBefore + MONTH_RANGE * 30;
             const newRowsPrepended =
               Math.ceil(newDaysBefore / daysPerRow) -
               Math.ceil(daysBefore / daysPerRow);
-            setDaysBefore(newDaysBefore); // Add 3 months to the beginning
+            setDaysBefore(newDaysBefore);
 
             // Adjust scroll position to keep view stable
             if (listRef.current && newRowsPrepended > 0) {
-              listRef.current.scrollToOffset({
-                offset: newRowsPrepended * computedRowHeight,
-                animated: false, // No animation to make it seamless
+              listRef.current.scrollToIndex({
+                index: newRowsPrepended,
+                animated: false,
               });
             }
           }}

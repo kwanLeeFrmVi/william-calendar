@@ -57,7 +57,6 @@ export default function CalendarScreen() {
     const parsedDate = dayjs(dateInput, getLocaleDatePlaceholder()).startOf(
       "week"
     );
-    console.log("🚀 ~ handleJumpToDate ~ parsedDate:", parsedDate, dateInput);
     if (parsedDate.isValid()) {
       const timestamp = Math.floor(parsedDate.valueOf() / 1000);
       setScrollToTimestamp(timestamp);
@@ -71,9 +70,7 @@ export default function CalendarScreen() {
 
   const isDayDisabled = (date: number) => {
     const today = new Date();
-    const currentMonth = today.getMonth();
-    const dayMonth = new Date(date * 1000).getMonth();
-    return currentMonth !== dayMonth;
+    return dayjs(date * 1000).isSame(today, "month");
   };
 
   // initDate is always monday
